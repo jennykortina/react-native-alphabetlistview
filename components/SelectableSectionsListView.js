@@ -40,6 +40,7 @@ export default class SelectableSectionsListView extends Component {
     this.onScroll = this.onScroll.bind(this);
     this.onScrollAnimationEnd = this.onScrollAnimationEnd.bind(this);
     this.scrollToSection = this.scrollToSection.bind(this);
+    this.sortDataByField = this.sortDataByField.bind(this);
 
     // used for dynamic scrolling
     // always the first cell of a section keyed by section id
@@ -202,29 +203,50 @@ export default class SelectableSectionsListView extends Component {
     }
   }
 
+  sortDataByField(dataArray, field) {
+    let data = {}
+    dataArray.sort((a, b) => {
+      if(a[field] < b[field]) return -1;
+      if(a[field] > b[field]) return 1;
+      return 0;
+    })
+    .forEach((item)=> {
+      let key = item[field].substring(0,1).toUpperCase();
+      data[key] = data[key] || []
+      data[key].push(item)
+    })
+    return data
+  }
+
   render() {
-    const { data } = this.props;
+    const { data, sortOn } = this.props;
     const dataIsArray = Array.isArray(data);
+    const willSort = (typeof sortOn == "string")
     let sectionList;
     let renderSectionHeader;
     let dataSource;
-
-    if (dataIsArray) {
+    let formattedData;
+    
+    if (dataIsArray && willSort) {
+      formattedData = this.sortDataByField(data, sortOn);
+    }
+    if (dataIsArray && !willSort) {
       dataSource = this.state.dataSource.cloneWithRows(data);
     } else {
+      formattedData = data;
       sectionList = !this.props.hideSectionList ?
         <SectionList
           style={this.props.sectionListStyle}
           onSectionSelect={this.scrollToSection}
-          sections={Object.keys(data)}
-          data={data}
+          sections={Object.keys(formattedData)}
+          data={formattedData}
           getSectionListTitle={this.props.getSectionListTitle}
           component={this.props.sectionListItem}
         /> :
         null;
 
       renderSectionHeader = this.renderSectionHeader;
-      dataSource = this.state.dataSource.cloneWithRowsAndSections(data);
+      dataSource = this.state.dataSource.cloneWithRowsAndSections(formattedData);
     }
 
     const renderFooter = this.props.footer ?
@@ -278,6 +300,11 @@ SelectableSectionsListView.propTypes = {
     PropTypes.array,
     PropTypes.object,
   ]).isRequired,
+  
+  /**
+  * If this exists the array will be sorted into an object of alphabetically keyed arrays
+  */
+  sortOn: PropTypes.string,
 
   /**
    * Whether to show the section listing or not

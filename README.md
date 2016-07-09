@@ -59,6 +59,10 @@ All props are passed through to the underlying `ListView`, so you can specify al
 `array|object`, **required**  
 The data to render in the listview
 
+#### sortOn
+`string`
+If this exists the data array will be sorted on this field into an object of alphabetically keyed arrays
+
 #### hideSectionList
 `boolean`  
 Whether to show the section listing or not. *Note: If the data your are providing to
@@ -240,35 +244,24 @@ class MyComponent extends Component {
     super(props, context);
 
     this.state = {
-      data: {
-        A: ['some','entries','are here'],
-        B: ['some','entries','are here'],
-        C: ['some','entries','are here'],
-        D: ['some','entries','are here'],
-        E: ['some','entries','are here'],
-        F: ['some','entries','are here'],
-        G: ['some','entries','are here'],
-        H: ['some','entries','are here'],
-        I: ['some','entries','are here'],
-        J: ['some','entries','are here'],
-        K: ['some','entries','are here'],
-        L: ['some','entries','are here'],
-        M: ['some','entries','are here'],
-        N: ['some','entries','are here'],
-        O: ['some','entries','are here'],
-        P: ['some','entries','are here'],
-        Q: ['some','entries','are here'],
-        R: ['some','entries','are here'],
-        S: ['some','entries','are here'],
-        T: ['some','entries','are here'],
-        U: ['some','entries','are here'],
-        V: ['some','entries','are here'],
-        W: ['some','entries','are here'],
-        X: ['some','entries','are here'],
-        Y: ['some','entries','are here'],
-        Z: ['some','entries','are here'],
-      }
-    };
+      data: [
+        {fname: "Frank"},
+        {fname: "Bob"},
+        {fname: "John"},
+        {fname: "Jim"},
+        {fname: "Kathy"},
+        {fname: "Kim"},
+        {fname: "Amber"},
+        {fname: "Alice"},
+        {fname: "Anna"},
+        {fname: "Gary"},
+        {fname: "Cameron"},
+        {fname: "Lewis"},
+        {fname: "Larry"},
+        {fname: "Mary"},
+        {fname: "Hank"}
+      ]
+    }
   }
 
   render() {
@@ -280,6 +273,7 @@ class MyComponent extends Component {
         sectionListItem={SectionItem}
         sectionHeader={SectionHeader}
         sectionHeaderHeight={22.5}
+        sortOn="fname"
       />
     );
   }
