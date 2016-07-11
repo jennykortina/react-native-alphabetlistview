@@ -19,7 +19,7 @@ import CellWrapper from './CellWrapper';
 
 const { UIManager } = NativeModules;
 
-export default class SelectableSectionsListView extends Component {
+export default class AlphabetListView extends Component {
 
   constructor(props, context) {
     super(props, context);
@@ -29,7 +29,8 @@ export default class SelectableSectionsListView extends Component {
         rowHasChanged: (row1, row2) => row1 !== row2,
         sectionHeaderHasChanged: (prev, next) => prev !== next
       }),
-      offsetY: 0
+      offsetY: 0,
+      formattedData: []
     };
 
     this.renderFooter = this.renderFooter.bind(this);
@@ -48,10 +49,14 @@ export default class SelectableSectionsListView extends Component {
     this.sectionTagMap = {};
     this.updateTagInCellMap = this.updateTagInCellMap.bind(this);
     this.updateTagInSectionMap = this.updateTagInSectionMap.bind(this);
+    this.calculateTotalHeight = this.calculateTotalHeight.bind(this);
   }
 
   componentWillMount() {
-    this.calculateTotalHeight();
+    const { data, sortOn } = this.props;
+    const formattedData = this.sortDataByField(data, sortOn)
+    this.setState({formattedData})
+    this.calculateTotalHeight(formattedData);
   }
 
   componentDidMount() {
@@ -70,12 +75,6 @@ export default class SelectableSectionsListView extends Component {
   }
 
   calculateTotalHeight(data) {
-    data = data || this.props.data;
-
-    if (Array.isArray(data)) {
-      return;
-    }
-
     this.sectionItemCount = {};
     this.totalHeight = Object.keys(data)
       .reduce((carry, key) => {
@@ -84,7 +83,7 @@ export default class SelectableSectionsListView extends Component {
         carry += this.props.sectionHeaderHeight;
 
         this.sectionItemCount[key] = itemCount;
-
+        
         return carry;
       }, 0);
   }
@@ -145,8 +144,7 @@ export default class SelectableSectionsListView extends Component {
         title={title}
         sectionId={sectionId}
         sectionData={sectionData}
-        updateTag={updateTag}
-      />
+        updateTag={updateTag} />
     );
   }
 
@@ -215,39 +213,26 @@ export default class SelectableSectionsListView extends Component {
       data[key] = data[key] || []
       data[key].push(item)
     })
+    console.log("formatted", data)
     return data
   }
 
   render() {
-    const { data, sortOn } = this.props;
-    const dataIsArray = Array.isArray(data);
-    const willSort = (typeof sortOn == "string")
     let sectionList;
     let renderSectionHeader;
-    let dataSource;
-    let formattedData;
-    
-    if (dataIsArray && willSort) {
-      formattedData = this.sortDataByField(data, sortOn);
-    }
-    if (dataIsArray && !willSort) {
-      dataSource = this.state.dataSource.cloneWithRows(data);
-    } else {
-      formattedData = data;
-      sectionList = !this.props.hideSectionList ?
-        <SectionList
-          style={this.props.sectionListStyle}
-          onSectionSelect={this.scrollToSection}
-          sections={Object.keys(formattedData)}
-          data={formattedData}
-          getSectionListTitle={this.props.getSectionListTitle}
-          component={this.props.sectionListItem}
-        /> :
-        null;
+    let dataSource = this.state.dataSource.cloneWithRows(this.state.formattedData);
+    sectionList = !this.props.hideSectionList ?
+      <SectionList
+        style={this.props.sectionListStyle}
+        onSectionSelect={this.scrollToSection}
+        sections={Object.keys(this.state.formattedData)}
+        data={this.state.formattedData}
+        getSectionListTitle={this.props.getSectionListTitle}
+        component={this.props.sectionListItem} /> :
+      null;
 
-      renderSectionHeader = this.renderSectionHeader;
-      dataSource = this.state.dataSource.cloneWithRowsAndSections(formattedData);
-    }
+    renderSectionHeader = this.renderSectionHeader;
+    dataSource = this.state.dataSource.cloneWithRowsAndSections(this.state.formattedData);
 
     const renderFooter = this.props.footer ?
       this.renderFooter :
@@ -257,7 +242,8 @@ export default class SelectableSectionsListView extends Component {
       this.renderHeader :
       this.props.renderHeader;
 
-    const props = merge({}, this.props, {
+    const props = {
+      ...this.props,
       onScroll: this.onScroll,
       onScrollAnimationEnd: this.onScrollAnimationEnd,
       dataSource,
@@ -265,7 +251,7 @@ export default class SelectableSectionsListView extends Component {
       renderHeader,
       renderRow: this.renderRow,
       renderSectionHeader
-    });
+    };
 
     props.style = void 0;
 
@@ -273,8 +259,7 @@ export default class SelectableSectionsListView extends Component {
       <View ref="view" style={[styles.container, this.props.style]}>
         <ListView
           ref="listview"
-          {...props}
-        />
+          {...props} />
         {sectionList}
       </View>
     );
@@ -292,7 +277,7 @@ const stylesheetProp = PropTypes.oneOfType([
   PropTypes.object,
 ]);
 
-SelectableSectionsListView.propTypes = {
+AlphabetListView.propTypes = {
   /**
    * The data to render in the listview
    */

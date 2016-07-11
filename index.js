@@ -1,5 +1,5 @@
 'use strict';
 
-import SelectableSectionsListView from './components/SelectableSectionsListView';
+import AlphabetListView from './components/AlphabetListView';
 
-export default SelectableSectionsListView;
+export default AlphabetListView;
