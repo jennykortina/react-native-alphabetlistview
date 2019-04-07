@@ -1,26 +1,23 @@
-'use strict';
+"use strict";
 /* jshint esnext: true */
 
-import React, {
-  Component,
-  PropTypes,
-} from 'react';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
 import ReactNative, {
   ListView,
   StyleSheet,
   View,
-  NativeModules,
-} from 'react-native';
-import merge from 'merge';
+  NativeModules
+} from "react-native";
+import merge from "merge";
 
-import SectionHeader from './SectionHeader';
-import SectionList from './SectionList';
-import CellWrapper from './CellWrapper';
+import SectionHeader from "./SectionHeader";
+import SectionList from "./SectionList";
+import CellWrapper from "./CellWrapper";
 
 const { UIManager } = NativeModules;
 
 export default class AlphabetListView extends Component {
-
   constructor(props, context) {
     super(props, context);
 
@@ -54,17 +51,20 @@ export default class AlphabetListView extends Component {
 
   componentWillMount() {
     const { data, sortOn } = this.props;
-    const formattedData = this.sortDataByField(data, sortOn)
-    this.setState({formattedData})
+    const formattedData = this.sortDataByField(data, sortOn);
+    this.setState({ formattedData });
     this.calculateTotalHeight(formattedData);
   }
 
   componentDidMount() {
     // push measuring into the next tick
     setTimeout(() => {
-      UIManager.measure(ReactNative.findNodeHandle(this.refs.view), (x,y,w,h) => {
-        this.containerHeight = h;
-      });
+      UIManager.measure(
+        ReactNative.findNodeHandle(this.refs.view),
+        (x, y, w, h) => {
+          this.containerHeight = h;
+        }
+      );
     }, 0);
   }
 
@@ -76,16 +76,15 @@ export default class AlphabetListView extends Component {
 
   calculateTotalHeight(data) {
     this.sectionItemCount = {};
-    this.totalHeight = Object.keys(data)
-      .reduce((carry, key) => {
-        var itemCount = data[key].length;
-        carry += itemCount * this.props.cellHeight;
-        carry += this.props.sectionHeaderHeight;
+    this.totalHeight = Object.keys(data).reduce((carry, key) => {
+      var itemCount = data[key].length;
+      carry += itemCount * this.props.cellHeight;
+      carry += this.props.sectionHeaderHeight;
 
-        this.sectionItemCount[key] = itemCount;
-        
-        return carry;
-      }, 0);
+      this.sectionItemCount[key] = itemCount;
+
+      return carry;
+    }, 0);
   }
 
   updateTagInSectionMap(tag, section) {
@@ -117,12 +116,12 @@ export default class AlphabetListView extends Component {
       const maxY = this.totalHeight - this.containerHeight + headerHeight;
       y = y > maxY ? maxY : y;
 
-      this.refs.listview.scrollTo({ x:0, y, animated: true });
+      this.refs.listview.scrollTo({ x: 0, y, animated: true });
     } else {
       // this breaks, if not all of the listview is pre-rendered!
       UIManager.measure(this.cellTagMap[section], (x, y, w, h) => {
         y = y - this.props.sectionHeaderHeight;
-        this.refs.listview.scrollTo({ x:0, y, animated: true });
+        this.refs.listview.scrollTo({ x: 0, y, animated: true });
       });
     }
 
@@ -130,13 +129,13 @@ export default class AlphabetListView extends Component {
   }
 
   renderSectionHeader(sectionData, sectionId) {
-    const updateTag = this.props.useDynamicHeights ?
-      this.updateTagInSectionMap :
-      null;
+    const updateTag = this.props.useDynamicHeights
+      ? this.updateTagInSectionMap
+      : null;
 
-    const title = this.props.getSectionTitle ?
-      this.props.getSectionTitle(sectionId) :
-      sectionId;
+    const title = this.props.getSectionTitle
+      ? this.props.getSectionTitle(sectionId)
+      : sectionId;
 
     return (
       <SectionHeader
@@ -144,7 +143,8 @@ export default class AlphabetListView extends Component {
         title={title}
         sectionId={sectionId}
         sectionData={sectionData}
-        updateTag={updateTag} />
+        updateTag={updateTag}
+      />
     );
   }
 
@@ -163,7 +163,7 @@ export default class AlphabetListView extends Component {
     index = parseInt(index, 10);
 
     const isFirst = index === 0;
-    const isLast = this.sectionItemCount[sectionId]-1 === index;
+    const isLast = this.sectionItemCount[sectionId] - 1 === index;
 
     const props = {
       isFirst,
@@ -175,11 +175,16 @@ export default class AlphabetListView extends Component {
       onSelect: this.props.onCellSelect
     };
 
-    return index === 0 && this.props.useDynamicHeights ?
+    return index === 0 && this.props.useDynamicHeights ? (
       <CellWrapper
         updateTag={this.updateTagInCellMap}
-        component={CellComponent} {...props} {...this.props.cellProps} /> :
-      <CellComponent {...props} {...this.props.cellProps} />;
+        component={CellComponent}
+        {...props}
+        {...this.props.cellProps}
+      />
+    ) : (
+      <CellComponent {...props} {...this.props.cellProps} />
+    );
   }
 
   onScroll(e) {
@@ -202,45 +207,51 @@ export default class AlphabetListView extends Component {
   }
 
   sortDataByField(dataArray, field) {
-    let data = {}
-    dataArray.sort((a, b) => {
-      if(a[field] < b[field]) return -1;
-      if(a[field] > b[field]) return 1;
-      return 0;
-    })
-    .forEach((item)=> {
-      let key = item[field].substring(0,1).toUpperCase();
-      data[key] = data[key] || []
-      data[key].push(item)
-    })
-    console.log("formatted", data)
-    return data
+    let data = {};
+    dataArray
+      .sort((a, b) => {
+        if (a[field] < b[field]) return -1;
+        if (a[field] > b[field]) return 1;
+        return 0;
+      })
+      .forEach(item => {
+        let key = item[field].substring(0, 1).toUpperCase();
+        data[key] = data[key] || [];
+        data[key].push(item);
+      });
+    console.log("formatted", data);
+    return data;
   }
 
   render() {
     let sectionList;
     let renderSectionHeader;
-    let dataSource = this.state.dataSource.cloneWithRows(this.state.formattedData);
-    sectionList = !this.props.hideSectionList ?
+    let dataSource = this.state.dataSource.cloneWithRows(
+      this.state.formattedData
+    );
+    sectionList = !this.props.hideSectionList ? (
       <SectionList
         style={this.props.sectionListStyle}
         onSectionSelect={this.scrollToSection}
         sections={Object.keys(this.state.formattedData)}
         data={this.state.formattedData}
         getSectionListTitle={this.props.getSectionListTitle}
-        component={this.props.sectionListItem} /> :
-      null;
+        component={this.props.sectionListItem}
+      />
+    ) : null;
 
     renderSectionHeader = this.renderSectionHeader;
-    dataSource = this.state.dataSource.cloneWithRowsAndSections(this.state.formattedData);
+    dataSource = this.state.dataSource.cloneWithRowsAndSections(
+      this.state.formattedData
+    );
 
-    const renderFooter = this.props.footer ?
-      this.renderFooter :
-      this.props.renderFooter;
+    const renderFooter = this.props.footer
+      ? this.renderFooter
+      : this.props.renderFooter;
 
-    const renderHeader = this.props.header ?
-      this.renderHeader :
-      this.props.renderHeader;
+    const renderHeader = this.props.header
+      ? this.renderHeader
+      : this.props.renderHeader;
 
     const props = {
       ...this.props,
@@ -257,9 +268,7 @@ export default class AlphabetListView extends Component {
 
     return (
       <View ref="view" style={[styles.container, this.props.style]}>
-        <ListView
-          ref="listview"
-          {...props} />
+        <ListView ref="listview" {...props} />
         {sectionList}
       </View>
     );
@@ -274,21 +283,18 @@ const styles = StyleSheet.create({
 
 const stylesheetProp = PropTypes.oneOfType([
   PropTypes.number,
-  PropTypes.object,
+  PropTypes.object
 ]);
 
 AlphabetListView.propTypes = {
   /**
    * The data to render in the listview
    */
-  data: PropTypes.oneOfType([
-    PropTypes.array,
-    PropTypes.object,
-  ]).isRequired,
-  
+  data: PropTypes.oneOfType([PropTypes.array, PropTypes.object]).isRequired,
+
   /**
-  * If this exists the array will be sorted into an object of alphabetically keyed arrays
-  */
+   * If this exists the array will be sorted into an object of alphabetically keyed arrays
+   */
   sortOn: PropTypes.string,
 
   /**
@@ -392,5 +398,4 @@ AlphabetListView.propTypes = {
    * Styles to pass to the section list container
    */
   sectionListStyle: stylesheetProp
-
 };
